@@ -3,11 +3,11 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoia2lsb3JvbWVvZGVsdGEiLCJhIjoiY2t3ZHpxbWdtNHhpY
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/dark-v10',
-  center: [-86.774444, 36.162222],
+  center: [-86.774444, 36.162222], // nashville
   zoom: 13
 });
-
-/* - - - Adds terrain – map first, then add height and map streets on top? - - - */
+  
+/* - - - Adds terrain – map first, then add height and map streets on top? https://docs.mapbox.com/mapbox-gl-js/guides/ - - - */
   // map.on('load', () => {
   //   map.addLayer({
   //     id: 'terrain-data',
@@ -19,7 +19,7 @@ const map = new mapboxgl.Map({
   //     'source-layer': 'contour'
   //   });
   // });
-
+  
 /* - - - Adds building height - - - */
   // map.on('load', () => {
   //   // Insert the layer beneath any symbol layer.
@@ -69,3 +69,45 @@ const map = new mapboxgl.Map({
   //     labelLayerId
   //   );
   // });
+
+// Mapbox Geocoder plugin !
+const geocoder = new MapboxGeocoder({
+  // initialize geocoder
+  accessToken: mapboxgl.accessToken, // set access token
+  // placeholder: 'Search near Nashville, TN',
+  proximity: {
+    longitude: -86.774444,
+    latitude: 36.162222
+  }, // nashville, tn
+  mapboxgl: mapboxgl, // set mapboxGL instance
+  // marker: false // disable default marker
+});
+
+// add the geocoder to the map
+map.addControl(geocoder);
+
+// const marker = new mapboxgl.Marker()
+//   .setLngLat([-86.774444, 36.162222])
+//   .addTo(map);
+
+// const locationSearch = async (query) => {
+//   const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json`);
+//   url.search = new URLSearchParams({
+//     access_token: mapboxgl.accessToken,
+//     proximity: '-86.774444,36.162222' // Nashville
+//   })
+//   const promise = await fetch(url);
+//   const locationData = await promise.json();
+//   // console.log(locationData.features);
+
+//   locationData.features.map((location) => {
+//     console.log(location.text);
+//   })
+// }
+
+// const searchForm = document.querySelector('.searchForm');
+// searchForm.addEventListener('submit', (e) => {
+//   e.preventDefault();
+//   const queryString = document.getElementById('searchInput').value;
+//   locationSearch(queryString);
+// });

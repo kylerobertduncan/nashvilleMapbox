@@ -6,11 +6,15 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nashville Mapbox</title>
-  <link rel="stylesheet" href="style.css">
-  <script src='./script.js' defer></script>
   <!-- Mapbox -->
   <script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
   <link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
+  <!-- Geocoder Plugin -->
+  <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js'></script>
+  <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' type='text/css' />
+  <!-- My Script & Styling -->
+  <script src='./script.js' defer></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -19,6 +23,11 @@
 
   <header>
     <h1>Nashville by Night</h1>
+    <!-- <form class='searchForm'>
+      <label for="searchInput">Search:</label>
+      <input type="text" name="searchInput" id="searchInput">
+      <button type="submit">Go</button>
+    </form> -->
   </header>
 
 </body>

@@ -80,11 +80,41 @@ const geocoder = new MapboxGeocoder({
     latitude: 36.162222
   }, // nashville, tn
   mapboxgl: mapboxgl, // set mapboxGL instance
-  // marker: false // disable default marker
+  marker: false // disable default marker
 });
 
 // add the geocoder to the map
 map.addControl(geocoder);
+
+geocoder.on('result', (e) => {
+  console.log(e.result.text, e.result.center);
+})
+
+map.on('load', () => {
+
+  map.addSource('single-point', {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: []
+    }
+  })
+
+  map.addLayer({
+    id: 'point',
+    source: 'single-point',
+    type: 'circle',
+    paint: {
+      'circle-radius': 10,
+      'circle-color': '#448EE4'
+    }
+  });
+
+  geocoder.on('result', (e) => {
+    map.getSource('single-point').setData(e.result.geometry)
+  });
+
+});
 
 // const marker = new mapboxgl.Marker()
 //   .setLngLat([-86.774444, 36.162222])

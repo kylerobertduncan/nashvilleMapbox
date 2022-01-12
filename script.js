@@ -1,4 +1,19 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyDqxKzitlb6W94YNOkh5ueyZOLC-wiiAQ8",
+  authDomain: "cities-by-night.firebaseapp.com",
+  projectId: "cities-by-night",
+  storageBucket: "cities-by-night.appspot.com",
+  messagingSenderId: "277232894119",
+  appId: "1:277232894119:web:adef6b8e8f82a4f7c51b82",
+  measurementId: "G-N57T3Q9W8S"
+}
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 mapboxgl.accessToken = 'pk.eyJ1Ijoia2lsb3JvbWVvZGVsdGEiLCJhIjoiY2t3ZHpxbWdtNHhpYzJwbXF2MHAyOWhrbSJ9.3eOrjPEsgXiA4izuIZMliw';
+
+// Add terrain–map first, then add height and map streets on top?
+// https://docs.mapbox.com/mapbox-gl-js/guides/
 
 const map = new mapboxgl.Map({
   container: 'map',
@@ -7,74 +22,11 @@ const map = new mapboxgl.Map({
   zoom: 13
 });
   
-/* - - - Adds terrain – map first, then add height and map streets on top? https://docs.mapbox.com/mapbox-gl-js/guides/ - - - */
-  // map.on('load', () => {
-  //   map.addLayer({
-  //     id: 'terrain-data',
-  //     type: 'line',
-  //     source: {
-  //       type: 'vector',
-  //       url: 'mapbox://mapbox.mapbox-terrain-v2'
-  //     },
-  //     'source-layer': 'contour'
-  //   });
-  // });
-  
-/* - - - Adds building height - - - */
-  // map.on('load', () => {
-  //   // Insert the layer beneath any symbol layer.
-  //   const layers = map.getStyle().layers;
-  //   const labelLayerId = layers.find(
-  //     (layer) => layer.type === 'symbol' && layer.layout['text-field']
-  //   ).id;
-
-  //   // The 'building' layer in the Mapbox Streets
-  //   // vector tileset contains building height data
-  //   // from OpenStreetMap.
-  //   map.addLayer(
-  //     {
-  //       'id': 'add-3d-buildings',
-  //       'source': 'composite',
-  //       'source-layer': 'building',
-  //       'filter': ['==', 'extrude', 'true'],
-  //       'type': 'fill-extrusion',
-  //       'minzoom': 10,
-  //       'paint': {
-  //         'fill-extrusion-color': '#aaa',
-
-  //         // Use an 'interpolate' expression to
-  //         // add a smooth transition effect to
-  //         // the buildings as the user zooms in.
-  //         'fill-extrusion-height': [
-  //           'interpolate',
-  //           ['linear'],
-  //           ['zoom'],
-  //           15,
-  //           0,
-  //           15.05,
-  //           ['get', 'height']
-  //         ],
-  //         'fill-extrusion-base': [
-  //           'interpolate',
-  //           ['linear'],
-  //           ['zoom'],
-  //           15,
-  //           0,
-  //           15.05,
-  //           ['get', 'min_height']
-  //         ],
-  //         'fill-extrusion-opacity': 0.6
-  //       }
-  //     },
-  //     labelLayerId
-  //   );
-  // });
-
 // Mapbox Geocoder plugin !
 const geocoder = new MapboxGeocoder({
   // initialize geocoder
   accessToken: mapboxgl.accessToken, // set access token
-  // placeholder: 'Search near Nashville, TN',
+  // placeholder: 'Search near Nashville, TN', // empty search bar text 
   proximity: {
     longitude: -86.774444,
     latitude: 36.162222
@@ -85,10 +37,6 @@ const geocoder = new MapboxGeocoder({
 
 // add the geocoder to the map
 map.addControl(geocoder);
-
-geocoder.on('result', (e) => {
-  console.log(e.result.text, e.result.center);
-})
 
 map.on('load', () => {
 
@@ -106,38 +54,53 @@ map.on('load', () => {
     type: 'circle',
     paint: {
       'circle-radius': 10,
-      'circle-color': '#448EE4'
+      'circle-color': 'red'
     }
   });
 
   geocoder.on('result', (e) => {
+    console.log(e.result.text, e.result.center);
     map.getSource('single-point').setData(e.result.geometry)
   });
 
+  // add a pop up to add the location (and add notes, etc.)
+
 });
 
-// const marker = new mapboxgl.Marker()
-//   .setLngLat([-86.774444, 36.162222])
-//   .addTo(map);
+// add function later to retrieve current city
+const currentCity = 'nashville-by-night';
 
-// const locationSearch = async (query) => {
-//   const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json`);
-//   url.search = new URLSearchParams({
-//     access_token: mapboxgl.accessToken,
-//     proximity: '-86.774444,36.162222' // Nashville
-//   })
-//   const promise = await fetch(url);
-//   const locationData = await promise.json();
-//   // console.log(locationData.features);
+const saveLocation = (locationName, coordinates) => {
+  db.collection('locations').add({
+    name: locationName,
+    center: coordinates
+  })
+  .then((docRef) => {
+    console.log('added location with ID:', docRef.id);
+  })
+  .catch((error) => {
+    console.error('error adding location:', error);
+  })
+}
 
-//   locationData.features.map((location) => {
-//     console.log(location.text);
+
+// const fetchLocationData = () => {
+//   const locationDataRef = db.collection(currentCity).doc('locations');  
+//   console.log(locationDataRef);
+//   locationDataRef.get().then((doc) => {
+//     const locationData = doc.data()
+//     console.log(locationData);
+//     return locationData;
 //   })
 // }
 
-// const searchForm = document.querySelector('.searchForm');
-// searchForm.addEventListener('submit', (e) => {
-//   e.preventDefault();
-//   const queryString = document.getElementById('searchInput').value;
-//   locationSearch(queryString);
-// });
+// console.log(fetchLocationData());
+// const savedLocations = fetchLocationData();
+// console.log(savedLocations);
+
+const savedLocations = {}
+const locationDataRef = db.collection(currentCity).doc('locations');
+locationDataRef.get().then((doc) => {
+  const locationData = doc.data()
+  console.log(locationData);
+})

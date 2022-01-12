@@ -1,3 +1,4 @@
+// initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDqxKzitlb6W94YNOkh5ueyZOLC-wiiAQ8",
   authDomain: "cities-by-night.firebaseapp.com",
@@ -10,19 +11,24 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// add function later to retrieve current city
+const currentCity = 'nashville-by-night';
+
+// initialize Mapbox
 mapboxgl.accessToken = 'pk.eyJ1Ijoia2lsb3JvbWVvZGVsdGEiLCJhIjoiY2t3ZHpxbWdtNHhpYzJwbXF2MHAyOWhrbSJ9.3eOrjPEsgXiA4izuIZMliw';
 
 // Add terrain–map first, then add height and map streets on top?
 // https://docs.mapbox.com/mapbox-gl-js/guides/
 
+// populate the map
 const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/dark-v10',
   center: [-86.774444, 36.162222], // nashville
-  zoom: 13
+  zoom: 12
 });
   
-// Mapbox Geocoder plugin !
+// Add Mapbox Geocoder plugin !
 const geocoder = new MapboxGeocoder({
   // initialize geocoder
   accessToken: mapboxgl.accessToken, // set access token
@@ -38,9 +44,11 @@ const geocoder = new MapboxGeocoder({
 // add the geocoder to the map
 map.addControl(geocoder);
 
+// actions once base map loaded
 map.on('load', () => {
 
-  map.addSource('single-point', {
+  // add a layer for search locations
+  map.addSource('search-result', {
     type: 'geojson',
     data: {
       type: 'FeatureCollection',
@@ -48,59 +56,62 @@ map.on('load', () => {
     }
   })
 
+  // define the style of each search marker
   map.addLayer({
     id: 'point',
-    source: 'single-point',
+    source: 'search-result',
     type: 'circle',
     paint: {
       'circle-radius': 10,
-      'circle-color': 'red'
+      'circle-color': 'blue'
     }
   });
 
+  // add a search marker when result selected
   geocoder.on('result', (e) => {
-    console.log(e.result.text, e.result.center);
-    map.getSource('single-point').setData(e.result.geometry)
+    map.getSource('search-result').setData(e.result.geometry)
+    console.log(e.result.text, e.result.geometry);
   });
 
   // add a pop up to add the location (and add notes, etc.)
 
 });
 
-// add function later to retrieve current city
-const currentCity = 'nashville-by-night';
-
-const saveLocation = (locationName, coordinates) => {
-  db.collection('locations').add({
-    name: locationName,
-    center: coordinates
-  })
-  .then((docRef) => {
-    console.log('added location with ID:', docRef.id);
-  })
-  .catch((error) => {
-    console.error('error adding location:', error);
-  })
+// add a marker for each saved location
+const addMarkers = (locationData) => {
+  for (const location in locationData) {
+    console.log(location, locationData[location]);
+    const el = document.createElement('div');
+    el.id = location.split(' ').join('-');
+    el.className = 'marker';
+    new mapboxgl.Marker(el)
+      .setLngLat(locationData[location])
+      .addTo(map);
+  }
 }
 
+// get already saved locations from firebase
+const fetchLocationData = () => {
+  const locationDataRef = db.collection(currentCity).doc('locations');
+  locationDataRef.get().then((doc) => {
+    const locationData = doc.data()
+    // console.log(locationData);
+    addMarkers(locationData);
+  })
+}
+fetchLocationData();
 
-// const fetchLocationData = () => {
-//   const locationDataRef = db.collection(currentCity).doc('locations');  
-//   console.log(locationDataRef);
-//   locationDataRef.get().then((doc) => {
-//     const locationData = doc.data()
-//     console.log(locationData);
-//     return locationData;
-//   })
-// }
+// save a location to firebase
+const saveLocation = (locationName, geometry) => {
+  db.collection(currentCity).doc('locations').add({
+    name: locationName,
+    center: geometry
+  })
+    .then((docRef) => {
+      console.log('added location with ID:', docRef.id);
+    })
+    .catch((error) => {
+      console.error('error adding location:', error);
+    })
+}
 
-// console.log(fetchLocationData());
-// const savedLocations = fetchLocationData();
-// console.log(savedLocations);
-
-const savedLocations = {}
-const locationDataRef = db.collection(currentCity).doc('locations');
-locationDataRef.get().then((doc) => {
-  const locationData = doc.data()
-  console.log(locationData);
-})
